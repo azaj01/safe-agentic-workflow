@@ -51,11 +51,21 @@ else
 fi
 
 # Merge conflict markers
-CONFLICTS=$(grep -rl '<<<<<<' . --include='*.sh' --include='*.md' --include='*.json' --include='*.toml' --include='*.yml' --include='*.mdc' 2>/dev/null | grep -v node_modules | grep -v .git | grep -v pre-release | grep -v PRE-RELEASE || true)
+# docs/knowledge-vault/ is excluded: it is a knowledge base DESCRIBING this repo, so it
+# quotes things like the conflict-marker pattern this very check greps for. Scanning it
+# produces false positives about its own subject matter, not real conflicts.
+CONFLICTS=$(grep -rl '<<<<<<' . --include='*.sh' --include='*.md' --include='*.json' --include='*.toml' --include='*.yml' --include='*.mdc' 2>/dev/null | grep -v node_modules | grep -v .git | grep -v pre-release | grep -v PRE-RELEASE | grep -v 'docs/knowledge-vault/' || true)
 if [ -z "$CONFLICTS" ]; then
     check_pass "No merge conflict markers"
 else
     check_fail "Merge conflict markers found in: $CONFLICTS"
+fi
+
+# Prefer GNU timeout when available (gtimeout from brew coreutils, or timeout on Linux).
+# Empty means run suites directly - see the note at the invocation below.
+TIMEOUT_CMD=""
+if command -v gtimeout >/dev/null 2>&1; then TIMEOUT_CMD="gtimeout"
+elif command -v timeout >/dev/null 2>&1; then TIMEOUT_CMD="timeout"
 fi
 
 # Test suites
@@ -64,13 +74,32 @@ TOTAL_PASS=0
 for test_file in tests/test-*.sh; do
     if [ -f "$test_file" ]; then
         test_name=$(basename "$test_file" .sh)
-        output=$(timeout 120 bash "$test_file" 2>&1 || true)
+        # `timeout` is GNU coreutils and is absent on stock macOS, where it made this loop
+        # report EVERY suite as failed ("timeout: command not found") — the gate over-blocked
+        # a release for which the suites actually passed. Use it when present, run directly
+        # when not, rather than failing every suite on the maintainer's own machine.
+        if [ -n "$TIMEOUT_CMD" ]; then
+            output=$($TIMEOUT_CMD 120 bash "$test_file" 2>&1 || true)
+        else
+            output=$(bash "$test_file" 2>&1 || true)
+        fi
         if echo "$output" | grep -q "ALL.*PASS"; then
-            # Extract count if available
-            count=$(echo "$output" | grep -oP '\d+(?=/\d+ PASS)' | tail -1 || echo "?")
-            check_pass "$test_name: ${count} tests"
-            TOTAL_TESTS=$((TOTAL_TESTS + ${count:-0}))
-            TOTAL_PASS=$((TOTAL_PASS + ${count:-0}))
+            # Extract the assertion count. Two things this has to survive, both of which
+            # silently killed this loop after the FIRST suite:
+            #   - grep -oP is GNU-only; stock macOS grep rejects -P outright.
+            #   - the old fallback emitted "?", and $((TOTAL + ?)) is an arithmetic error,
+            #     which under `set -e` exited the script mid-loop. The summary then reported
+            #     a total of 0/0 while looking like it had run everything.
+            # Match the suites' actual "Passed: N" output, and keep the value strictly numeric.
+            count=$(printf '%s\n' "$output" | sed -n 's/.*Passed:[^0-9]*\([0-9][0-9]*\).*/\1/p' | tail -1)
+            case "$count" in ''|*[!0-9]*) count=0 ;; esac
+            if [ "$count" -gt 0 ]; then
+                check_pass "$test_name: ${count} assertions"
+            else
+                check_pass "$test_name: passed (count not parsed)"
+            fi
+            TOTAL_TESTS=$((TOTAL_TESTS + count))
+            TOTAL_PASS=$((TOTAL_PASS + count))
         else
             check_fail "$test_name: FAILED"
         fi
@@ -110,7 +139,10 @@ for provider_doc in .claude/README.md .codex/README.md .cursor/rules/README.md .
 done
 
 # Stale references
-STALE=$(grep -rl 'CODEX\.md' docs/ README.md .claude/ .codex/ .cursor/ .gemini/ 2>/dev/null | grep -v CHANGELOG | grep -v PRE-RELEASE | grep -v 'qa-validations/' | grep -v '.codex/README.md' || true)
+# docs/knowledge-vault/ excluded for the same reason as the conflict-marker check: the vault
+# records that CODEX.md does NOT exist, which is accurate documentation of an absence, not a
+# stale reference to be cleaned up.
+STALE=$(grep -rl 'CODEX\.md' docs/ README.md .claude/ .codex/ .cursor/ .gemini/ 2>/dev/null | grep -v CHANGELOG | grep -v PRE-RELEASE | grep -v 'qa-validations/' | grep -v '.codex/README.md' | grep -v 'docs/knowledge-vault/' || true)
 if [ -z "$STALE" ]; then
     check_pass "No stale CODEX.md references"
 else
