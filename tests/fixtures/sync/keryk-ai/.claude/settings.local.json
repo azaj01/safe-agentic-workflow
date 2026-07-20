@@ -1,0 +1,9 @@
+{
+  "description": "ScaleForge local settings (PROTECTED)",
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "env": {
+    "SCALEFORGE_ENV": "local"
+  }
+}
