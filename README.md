@@ -5,7 +5,7 @@
 **A Production-Tested Three-Layer Architecture for Coordinated AI Teams**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v2.10.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-v2.11.0-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/template-ready-brightgreen?style=flat-square" alt="Template Ready">
   <img src="https://img.shields.io/badge/tests-382%2F382-brightgreen?style=flat-square" alt="Tests">
@@ -150,11 +150,11 @@ Already using the harness and a new version is out? You have two paths:
 ./scripts/sync-claude-harness.sh manifest init --yes
 
 # Preview and apply (syncs all domains in your manifest's sync_scope)
-./scripts/sync-claude-harness.sh sync --version v2.10.0 --dry-run
-./scripts/sync-claude-harness.sh sync --version v2.10.0
+./scripts/sync-claude-harness.sh sync --version v2.11.0 --dry-run
+./scripts/sync-claude-harness.sh sync --version v2.11.0
 
 # Sync specific domains only
-./scripts/sync-claude-harness.sh sync --version v2.10.0 --scope .claude,.gemini
+./scripts/sync-claude-harness.sh sync --version v2.11.0 --scope .claude,.gemini
 ```
 
 **Manual** (full release, all providers):
