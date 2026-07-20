@@ -5,7 +5,7 @@
 **A Production-Tested Three-Layer Architecture for Coordinated AI Teams**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v2.11.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-v2.11.1-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/template-ready-brightgreen?style=flat-square" alt="Template Ready">
   <img src="https://img.shields.io/badge/tests-382%2F382-brightgreen?style=flat-square" alt="Tests">
@@ -151,18 +151,18 @@ Already using the harness and a new version is out? You have two paths:
 ./scripts/sync-claude-harness.sh manifest init --yes
 
 # Preview and apply (syncs all domains in your manifest's sync_scope)
-./scripts/sync-claude-harness.sh sync --version v2.11.0 --dry-run
-./scripts/sync-claude-harness.sh sync --version v2.11.0
+./scripts/sync-claude-harness.sh sync --version v2.11.1 --dry-run
+./scripts/sync-claude-harness.sh sync --version v2.11.1
 
 # Sync specific domains only
-./scripts/sync-claude-harness.sh sync --version v2.11.0 --scope .claude,.gemini
+./scripts/sync-claude-harness.sh sync --version v2.11.1 --scope .claude,.gemini
 ```
 
 **Manual** (full release, all providers):
 ```bash
 git remote add harness https://github.com/bybren-llc/safe-agentic-workflow.git
 git fetch harness main --tags
-git diff v2.10.0..v2.11.0 --stat             # See what changed
+git diff v2.10.0..v2.11.1 --stat             # See what changed
 git checkout harness/main -- .codex/agents/   # Cherry-pick what you need
 bash scripts/sync-claude-harness.sh --dry-run # Preview, then drop --dry-run to apply
 ```
@@ -1472,6 +1472,6 @@ See [NOTICE](NOTICE) for details.
 </p>
 
 <p align="center">
-  <strong>Version</strong>: v2.11.0<br>
+  <strong>Version</strong>: v2.11.1<br>
   <strong>Status</strong>: Production-validated, multi-provider (Claude Code + Gemini CLI + Codex CLI + Cursor IDE)
 </p>
